@@ -40,5 +40,6 @@ next-env.d.ts
 # The assembled installer is generated from tracked chunks by the download
 # route and is never stored as one oversized static asset.
 /public/downloads/*.exe
+/public/downloads/chunks/
 /.openai/*.tar.gz
 /.openai/*.exe
