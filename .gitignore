@@ -36,3 +36,7 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# Large desktop release artifacts are packaged with the Site build, not stored
+# in the source repository.
+/public/downloads/*.exe
