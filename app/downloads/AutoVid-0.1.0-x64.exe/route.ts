@@ -16,12 +16,19 @@ function headers() {
 
 export async function GET(request: Request) {
   const {readable, writable} = new TransformStream<Uint8Array, Uint8Array>();
+  const forwardedHeaders = new Headers();
+  for (const name of ['cookie', 'OAI-Sites-Authorization']) {
+    const value = request.headers.get(name);
+    if (value) forwardedHeaders.set(name, value);
+  }
 
   void (async () => {
     const writer = writable.getWriter();
     try {
       for (const part of PARTS) {
-        const response = await fetch(new URL(part, request.url));
+        const response = await fetch(new URL(part, request.url), {
+          headers: forwardedHeaders,
+        });
         if (!response.ok || !response.body) {
           throw new Error(`Installer part unavailable: ${part}`);
         }
