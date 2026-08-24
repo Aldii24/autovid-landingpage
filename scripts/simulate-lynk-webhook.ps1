@@ -1,6 +1,6 @@
 param(
   [Parameter(Mandatory = $true)]
-  [ValidatePattern('^[^\s@]+@[^\s@]+\.[^\s@]+$')]
+  [ValidatePattern('^[^\\\s@]+@[^\\\s@]+\.[^\\\s@]+$')]
   [string]$Email
 )
 
@@ -13,7 +13,7 @@ if ([string]::IsNullOrWhiteSpace($merchantKey)) {
 }
 
 # Remove the secret from the clipboard as soon as it has been read.
-Set-Clipboard -Value ''
+Set-Clipboard -Value ' '
 
 $suffix = [Guid]::NewGuid().ToString('N').Substring(0, 8)
 $timestamp = [DateTimeOffset]::UtcNow.ToString('yyyyMMddHHmmss')
