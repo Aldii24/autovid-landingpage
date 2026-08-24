@@ -1,3 +1,5 @@
+import {env} from 'cloudflare:workers';
+
 const PARTS = Array.from(
   {length: 9},
   (_, index) => `/downloads/chunks/AutoVid-0.1.0-x64.exe.part-${String(index).padStart(2, '0')}`,
@@ -16,6 +18,9 @@ function headers() {
 
 export async function GET(request: Request) {
   const {readable, writable} = new TransformStream<Uint8Array, Uint8Array>();
+  const assetBinding = (env as unknown as {
+    ASSETS?: {fetch(request: Request): Promise<Response>};
+  }).ASSETS;
   const forwardedHeaders = new Headers();
   for (const name of ['cookie', 'OAI-Sites-Authorization']) {
     const value = request.headers.get(name);
@@ -26,9 +31,12 @@ export async function GET(request: Request) {
     const writer = writable.getWriter();
     try {
       for (const part of PARTS) {
-        const response = await fetch(new URL(part, request.url), {
+        const partRequest = new Request(new URL(part, request.url), {
           headers: forwardedHeaders,
         });
+        const response = assetBinding
+          ? await assetBinding.fetch(partRequest)
+          : await fetch(partRequest);
         if (!response.ok || !response.body) {
           throw new Error(`Installer part unavailable: ${part}`);
         }
