@@ -62,11 +62,25 @@ const sendActivationEmail = async (
 };
 
 export async function POST(request: Request) {
+  const signature = request.headers.get('x-lynk-signature')?.trim() || '';
   let payload: unknown;
   try {
     payload = await request.json();
   } catch {
+    // Lynk's "Test URL" connectivity check may not include a payment JSON body.
+    // A real webhook is always signed, so this acknowledgement cannot issue a license.
+    if (!signature) {
+      return NextResponse.json({ok: true, test: true, service: 'autovid-lynk-webhook'});
+    }
     return NextResponse.json({ok: false, error: 'invalid_json'}, {status: 400});
+  }
+
+  const event =
+    payload && typeof payload === 'object' && !Array.isArray(payload)
+      ? String((payload as Record<string, unknown>).event || '').trim()
+      : '';
+  if (!signature && event !== 'payment.received') {
+    return NextResponse.json({ok: true, test: true, service: 'autovid-lynk-webhook'});
   }
 
   let payment;
@@ -83,7 +97,6 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ok: false, error: 'server_not_configured'}, {status: 503});
   }
-  const signature = request.headers.get('x-lynk-signature') || '';
   if (!verifyLynkSignature(payment, signature, merchantKey)) {
     return NextResponse.json({ok: false, error: 'invalid_signature'}, {status: 401});
   }
