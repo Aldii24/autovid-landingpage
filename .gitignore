@@ -37,6 +37,8 @@ next-env.d.ts
 /outputs/
 /work/
 
-# Large desktop release artifacts are packaged with the Site build, not stored
-# in the source repository.
+# The assembled installer is generated from tracked chunks by the download
+# route and is never stored as one oversized static asset.
 /public/downloads/*.exe
+/.openai/*.tar.gz
+/.openai/*.exe
