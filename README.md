@@ -1,6 +1,6 @@
 # AutoVid Landing Page
 
-Official multi-page website for AutoVid, built with Next.js and ready for Vercel.
+Official multi-page website for AutoVid, built with Next.js.
 
 ## Local development
 
