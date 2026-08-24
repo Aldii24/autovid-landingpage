@@ -28,18 +28,17 @@ yarn-error.log*
 
 # local environment
 .env*
+!.env.example
 
 # deployment and generated files
 .vercel
 next-env.d.ts
 /dist/
 /.wrangler/
+/.openai/
 /outputs/
 /work/
 
-# The assembled installer is generated from tracked chunks by the download
-# route and is never stored as one oversized static asset.
+# Installers are hosted in Cloudflare R2, never in the Vercel deployment.
 /public/downloads/*.exe
 /public/downloads/chunks/
-/.openai/*.tar.gz
-/.openai/*.exe
