@@ -6,6 +6,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $endpoint = 'https://www.autovid.my.id/api/webhooks/lynk'
+if ($Email.Contains('\')) {
+  throw 'Email tidak boleh memakai backslash. Gunakan format: nama@gmail.com'
+}
 $secureMerchantKey = Read-Host 'Paste Merchant Key Lynk.id, lalu tekan Enter' -AsSecureString
 $credential = New-Object System.Management.Automation.PSCredential('autovid-webhook', $secureMerchantKey)
 $merchantKey = $credential.GetNetworkCredential().Password.Trim()
@@ -63,6 +66,7 @@ try {
 }
 $signature = ([BitConverter]::ToString($signatureBytes)).Replace('-', '').ToLowerInvariant()
 $json = $payload | ConvertTo-Json -Depth 10 -Compress
+$bodyBytes = [Text.Encoding]::UTF8.GetBytes($json)
 
 try {
   $response = Invoke-WebRequest `
@@ -70,17 +74,23 @@ try {
     -Method Post `
     -ContentType 'application/json' `
     -Headers @{'X-Lynk-Signature' = $signature} `
-    -Body $json `
+    -Body $bodyBytes `
     -UseBasicParsing
-  Write-Host "Webhook simulation succeeded (HTTP $($response.StatusCode))." -ForegroundColor Green
-  Write-Host "Reference: $refId"
-  Write-Host "Response: $($response.Content)"
-  Write-Host "Check inbox and spam for: $Email"
 } catch {
-  $status = $_.Exception.Response.StatusCode.value__
+  $status = if ($_.Exception.Response) { $_.Exception.Response.StatusCode.value__ } else { 'unknown' }
   $body = ''
   if ($_.ErrorDetails.Message) {
     $body = $_.ErrorDetails.Message
   }
   throw "Webhook simulation failed (HTTP $status). $body"
 }
+
+$result = $response.Content | ConvertFrom-Json
+if (-not $result.ok -or $result.status -ne 'emailed') {
+  throw "Webhook diterima tetapi pipeline tidak selesai. Response: $($response.Content)"
+}
+
+Write-Host "Webhook simulation succeeded (HTTP $($response.StatusCode))." -ForegroundColor Green
+Write-Host "Reference: $refId"
+Write-Host "Response: $($response.Content)"
+Write-Host "Check inbox and spam for: $Email"
