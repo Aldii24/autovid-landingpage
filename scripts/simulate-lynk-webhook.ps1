@@ -6,14 +6,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $endpoint = 'https://www.autovid.my.id/api/webhooks/lynk'
-$merchantKey = (Get-Clipboard -Raw).Trim()
+$secureMerchantKey = Read-Host 'Paste Merchant Key Lynk.id, lalu tekan Enter' -AsSecureString
+$credential = New-Object System.Management.Automation.PSCredential('autovid-webhook', $secureMerchantKey)
+$merchantKey = $credential.GetNetworkCredential().Password.Trim()
 
 if ([string]::IsNullOrWhiteSpace($merchantKey)) {
-  throw 'Clipboard kosong. Klik Copy pada Merchant Key Lynk.id, lalu jalankan ulang script ini.'
+  throw 'Merchant Key kosong. Jalankan ulang dan paste Merchant Key dari Lynk.id.'
 }
-
-# Remove the secret from the clipboard as soon as it has been read.
-Set-Clipboard -Value ' '
+$secureMerchantKey = $null
+$credential = $null
 
 $suffix = [Guid]::NewGuid().ToString('N').Substring(0, 8)
 $timestamp = [DateTimeOffset]::UtcNow.ToString('yyyyMMddHHmmss')
